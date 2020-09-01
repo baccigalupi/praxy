@@ -91,13 +91,69 @@ describe('Praxy.StaticServer', () => {
   })
 
   describe('with a load-time mapper', () => {
-    it('returns a 404 for files created after load time')
-    it('returns a 404 for files that existed before load, that have been since deleted')
+    const newFilename = 'new.json'
+    const removedFilename = 'hello.json'
+
+    beforeEach((done) => {
+      const mapper = fileMapper({
+        root: path.resolve(`${__dirname}/support/static`),
+        type: 'load-time'
+      })
+      startServer(mapper).then(() => done())
+    })
+
+    afterEach((done) => {
+      removeFile(`${__dirname}/support/static/${newFilename}`)
+        .then(() => done())
+        .catch(() => done())
+    })
+
+    afterEach((done) => {
+      createFile(
+        `${__dirname}/support/static/${removedFilename}`, 
+        JSON.stringify({hello: "World"})
+      ).then(() => done())
+    })
+
+    afterEach((done) => {
+      server.stop().then(() => done())
+    })
+
+    it('finds resources that have not changed since load time', (done) => {
+      axios.get(`http://localhost:${port}/refresh.svg`)
+        .then((response) => {
+          assert.equal(response.status, 200)
+        })
+        .catch((err) => done(err))
+        .then(() => done())
+    })
+
+    it('returns a 404 for files created after load time', (done) => {
+      axios.get(`http://localhost:${port}/refresh.svg`)
+        .then((response) => assert.equal(response.status, 200))
+        .then(() => createFile(
+          `${__dirname}/support/static/${newFilename}`, 
+          JSON.stringify({bright: 'and shiny!'})
+        ))  
+        .then(() => console.log)    
+        .then(() => axios.get(`http://localhost:${port}/${newFilename}`))
+        .catch((error) => {
+          assert.equal(error.response.status, 404)
+        })
+        .then(() => done())
+    })
+
+    it('returns a 404 for files that existed before load, that have been since deleted', (done) => { 
+      axios.get(`http://localhost:${port}/${removedFilename}`)
+        .then((response) => assert.equal(response.status, 200))
+        .then(() => removeFile(`${__dirname}/support/static/${removedFilename}`))
+        .then(() => axios.get(`http://localhost:${port}/${removedFilename}`))
+        .catch((error) => assert.equal(error.response.status, 404))
+        .then(done)
+    })
   })
 
   describe('with a per-request mapper', () => {
-    const port = 3005
-    let server
     const newFilename = 'new.json'
     const removedFilename = 'hello.json'
 
@@ -105,10 +161,7 @@ describe('Praxy.StaticServer', () => {
       const mapper = fileMapper({
         root: path.resolve(`${__dirname}/support/static`)
       })
-      server = new Server(mapper)
-      server
-        .start(port)
-        .then(() => done())
+      startServer(mapper).then(() => done())
     })
 
     afterEach((done) => {
