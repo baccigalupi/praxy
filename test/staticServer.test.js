@@ -1,10 +1,13 @@
 const assert = require('assert')
+const fs = require('fs')
 const path = require('path')
+const { promisify } = require('util')
 
 const axios = require('axios')
 const Server = require('../lib/StaticServer')
 const fileMapper = require('../lib/fileMapper')
-const { start } = require('repl')
+const removeFile = promisify(fs.unlink)
+const createFile = promisify(fs.writeFile)
 
 describe('Praxy.StaticServer', () => {
   const port = 3005
@@ -95,6 +98,8 @@ describe('Praxy.StaticServer', () => {
   describe('with a per-request mapper', () => {
     const port = 3005
     let server
+    const newFilename = 'new.json'
+    const removedFilename = 'hello.json'
 
     beforeEach((done) => {
       const mapper = fileMapper({
@@ -107,11 +112,38 @@ describe('Praxy.StaticServer', () => {
     })
 
     afterEach((done) => {
-      // remove new file
-      // add back removed file
+      removeFile(`${__dirname}/support/static/${newFilename}`)
+        .then(() => done())
+        .catch(() => done())
     })
 
-    it('finds files created since load time')
-    it('returns 404 on files deleted')
+    afterEach((done) => {
+      createFile(
+        `${__dirname}/support/static/${removedFilename}`, 
+        JSON.stringify({hello: "World"})
+      ).then(() => done())
+    })
+
+    afterEach((done) => {
+      server.stop().then(() => done())
+    })
+
+    it('finds files created since load time', (done) => {
+      createFile(
+        `${__dirname}/support/static/${newFilename}`, 
+        JSON.stringify({bright: 'and shiny!'})
+      )
+        .then(() => axios.get(`http://localhost:${port}/${newFilename}`))
+        .then((response) => assert.equal(response.status, 200))
+        .then(() => done())
+        .catch(done)
+    })
+
+    it('returns 404 on files deleted', (done) => {
+      removeFile(`${__dirname}/support/static/${removedFilename}`)
+        .then(() => axios.get(`http://localhost:${port}/${removedFilename}`))
+        .catch((error) => assert.equal(error.response.status, 404))
+        .then(done)
+    })
   })
 })
