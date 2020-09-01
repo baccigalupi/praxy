@@ -1,0 +1,20 @@
+{
+  "name": "praxy",
+  "version": "0.1.0",
+  "description": "The missing web app proxy",
+  "main": "index.js",
+  "repository": "https://www.github.com/baccigalupi/praxy",
+  "author": "Kane Baccigalupi",
+  "license": "MIT",
+  "private": false,
+  "devDependencies": {
+    "axios": "^0.20.0",
+    "mocha": "^8.1.3"
+  },
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "http-proxy": "^1.18.1",
+    "http-proxy-rules": "^1.1.3",
+    "recursive-readdir": "^2.2.2"
+  }
+}
