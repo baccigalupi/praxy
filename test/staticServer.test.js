@@ -4,7 +4,7 @@ const path = require('path')
 const { promisify } = require('util')
 
 const axios = require('axios')
-const Server = require('../lib/StaticServer')
+const StaticServer = require('../lib/StaticServer')
 const fileMapper = require('../lib/fileMapper')
 const removeFile = promisify(fs.unlink)
 const createFile = promisify(fs.writeFile)
@@ -17,7 +17,7 @@ describe('Praxy.StaticServer', () => {
     mapper = mapper || fileMapper({
       root: path.resolve(`${__dirname}/support/static`)
     })
-    server = new Server(mapper)
+    server = StaticServer(mapper)
     return server.start(port)
   }
 
@@ -122,13 +122,9 @@ describe('Praxy.StaticServer', () => {
     it('returns a map of filesat the uri /__praxy.json', (done) => {
       axios.get(`http://localhost:${port}/__praxy.json`)
         .then((response) => {
-          assert.deepEqual(response.data, {
-            files: [
-              '/hello.json',
-              '/refresh.svg',
-              '/hello/world.json'
-            ]
-          })
+          assert(response.data.files.includes('/hello.json'))
+          assert(response.data.files.includes('/refresh.svg'))
+          assert(response.data.files.includes('/hello/world.json'))
         })
         .then(() => done())
         .catch(done)

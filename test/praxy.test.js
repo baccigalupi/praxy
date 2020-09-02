@@ -1,7 +1,19 @@
 const Praxy = require('../index')
 
 describe('Praxy', () => {
-  describe('servers supporting `/__map.json` protocol', () => {
+  it('stops and starts via promises', (done) => {
+    const port = 3003
+    const server = new Proxy({}, {PORT: port})
+    server
+      .start()
+      .then(() => axios.get(`http://localhost:${port}/not-here`))
+      .catch(() => {
+        server.stop()
+        done()
+      })
+  })
+
+  describe('servers supporting `/__praxy.json` protocol', () => {
     let assetServer
     const assetPort = 5005
 
@@ -15,7 +27,5 @@ describe('Praxy', () => {
         .start(assetPort)
         .then(() => done)
     })
-
-    xit('')
   })
 })
