@@ -3,9 +3,9 @@ const Praxy = require('../index')
 describe('Praxy', () => {
   it('stops and starts via promises', (done) => {
     const port = 3003
-    const server = new Proxy({}, {PORT: port})
+    const server = Praxy({}, {PORT: port})
     server
-      .start()
+      .start(port)
       .then(() => axios.get(`http://localhost:${port}/not-here`))
       .catch(() => {
         server.stop()
@@ -22,7 +22,7 @@ describe('Praxy', () => {
         root: path.resolve(`${__dirname}/support/static`)
       })
 
-      assetServer = new Praxy.StaticServer(mapper)
+      assetServer = Praxy.StaticServer(mapper)
       assetServer
         .start(assetPort)
         .then(() => done)

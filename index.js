@@ -1,12 +1,13 @@
+const PromisedServer = require('./lib/PromisedServer')
 const StaticServer = require('./lib/StaticServer')
 const fileMapper = require('./lib/fileMapper')
 
-class Praxy {
-  constructor(config, env) {
-    this.config = config
-    this.env = env
-  }
+const routes = () => (req, res) => {
+  res.statusCode = 404
+  res.end()
 }
+
+const Praxy = (config, env) => new PromisedServer(() => routes)
 
 Praxy.StaticServer = StaticServer
 Praxy.fileMapper = fileMapper
