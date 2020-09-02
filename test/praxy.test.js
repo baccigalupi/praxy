@@ -1,28 +1,21 @@
 const Praxy = require('../index')
-const assetServer = require('./support/assetServer')
 
-describe('Praxy proxying', () => {
-  describe('asset proxying', () => {
+describe('Praxy', () => {
+  describe('servers supporting `/__map.json` protocol', () => {
+    let assetServer
+    const assetPort = 5005
+
     beforeEach((done) => {
-      // assetServer.start(done)
-    })
-  })
-
-  xit('proxies images to the ASSET_HOST variable', (done) => {
-    const config = {}
-    const env = {
-      ASSET_HOST: 'http://localhost:5003',
-      PORT: 3003
-    }
-    const proxy = new Praxy(config, env)
-
-    proxy
-      .start()
-      .then(() => {
-        // request
+      mapper = mapper || Praxy.fileMapper({
+        root: path.resolve(`${__dirname}/support/static`)
       })
-  })
 
-  it('proxies css to the ASSET_HOST variable')
-  it('proxies js to the ASSET_HOST variable')
+      assetServer = new Praxy.StaticServer(mapper)
+      assetServer
+        .start(assetPort)
+        .then(() => done)
+    })
+
+    xit('')
+  })
 })

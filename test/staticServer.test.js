@@ -21,7 +21,7 @@ describe('Praxy.StaticServer', () => {
     return server.start(port)
   }
 
-  it('it stops and starts with promises', (done) => {
+  it('stops and starts with promises', (done) => {
     startServer()
       .then(() => axios.get(`http://localhost:${port}/not-here`))
       .then(() => server.stop())
@@ -117,6 +117,21 @@ describe('Praxy.StaticServer', () => {
 
     afterEach((done) => {
       server.stop().then(() => done())
+    })
+
+    it('returns a map of filesat the uri /__praxy.json', (done) => {
+      axios.get(`http://localhost:${port}/__praxy.json`)
+        .then((response) => {
+          assert.deepEqual(response.data, {
+            files: [
+              '/hello.json',
+              '/refresh.svg',
+              '/hello/world.json'
+            ]
+          })
+        })
+        .then(() => done())
+        .catch(done)
     })
 
     it('finds resources that have not changed since load time', (done) => {

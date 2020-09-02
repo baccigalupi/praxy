@@ -1,5 +1,14 @@
-const staticServer = require('./lib/staticServer')
+const StaticServer = require('./lib/StaticServer')
+const fileMapper = require('./lib/fileMapper')
 
-module.exports = {
-  staticServer
+class Praxy {
+  constructor(config, env) {
+    this.config = config
+    this.env = env
+  }
 }
+
+Praxy.StaticServer = StaticServer
+Praxy.fileMapper = fileMapper
+
+module.exports = Praxy
