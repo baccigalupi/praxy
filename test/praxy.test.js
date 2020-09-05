@@ -51,12 +51,42 @@ describe('Praxy', () => {
       ).then(() => done())
     })
 
-    xit('will proxy any request in the map to that server', (done) => {
-      console.log('starting the test')
+    it('will get the map of files for a server', (done) => {
       const port = 3003
       const config = {
-        '*': [
-          `http://localhost:${assetServer}`
+        routes: [
+          { 
+            matcher: '*',
+            service: `http://localhost:${assetPort}`
+          }
+        ]
+      }
+
+      const server = Praxy(config)
+      server
+        .start(port)
+        .then(() => {
+          assert.equal(server.maps.length, 1)
+          assert.equal(server.maps[0].url, `http://localhost:${assetPort}`)
+        })
+        .then(() => {
+          server.stop()
+          done()
+        })
+        .catch((err) => {
+          server.stop()
+          done(err)
+        })
+    })
+
+    xit('will proxy any request in the map to that server', (done) => {
+      const port = 3003
+      const config = {
+        routes: [
+          { 
+            matcher: '*',
+            service: `http://localhost:${assetPort}`
+          }
         ]
       }
 

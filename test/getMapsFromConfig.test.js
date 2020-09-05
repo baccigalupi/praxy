@@ -49,5 +49,31 @@ describe('Praxy getMapsFromConfig', () => {
         })
         .catch((err) => done(err))
     })
+
+    it('will return just the url for a service if the service does not provide a map', (done) => {
+      const config = {
+        routes: [
+          {
+            matcher: '/assets/*',
+            service: 'https://www.google.com'
+          },
+          { 
+            matcher: '*',
+            service: `http://localhost:${assetPort}`
+          }
+        ]
+      }
+
+      getMapsFromConfig(config)
+        .then((services) => {
+          assert.equal(services.length, 2)
+          const map = services.find((service) => {
+            return service.url === 'https://www.google.com'
+          })
+          assert.deepEqual(Object.keys(map), ['url'])
+          done()
+        })
+        .catch((err) => done(err))
+    })
   })
 })
