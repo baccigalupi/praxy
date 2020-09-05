@@ -15,7 +15,7 @@ describe('Praxy getMapsFromConfig', () => {
         type: 'load-time'
       })
 
-      assetServer = Praxy.StaticServer(mapper)
+      assetServer = new Praxy.StaticServer(mapper)
       assetServer
         .start(assetPort)
         .then(() => done())

@@ -12,7 +12,7 @@ const createFile = promisify(fs.writeFile)
 describe('Praxy', () => {
   xit('stops and starts via promises', (done) => {
     const port = 3003
-    const server = Praxy({}, {PORT: port})
+    const server = new Praxy()
     server
       .start(port)
       .then(() => server.stop())
@@ -32,7 +32,7 @@ describe('Praxy', () => {
       })
 
       // start and preload the asset server with map
-      assetServer = Praxy.StaticServer(mapper)
+      assetServer = new Praxy.StaticServer(mapper)
       assetServer
         .start(assetPort)
         .then(() => axios.get(`http://localhost:${assetPort}/refresh.svg`))
@@ -62,7 +62,7 @@ describe('Praxy', () => {
         ]
       }
 
-      const server = Praxy(config)
+      const server = new Praxy(config)
       server
         .start(port)
         .then(() => {
@@ -90,7 +90,7 @@ describe('Praxy', () => {
         ]
       }
 
-      const server = Praxy(config)
+      const server = new Praxy(config)
       server
         .start(port)
         .then(() => axios.get(`http://localhost:${port}/refresh.svg`))
@@ -107,7 +107,7 @@ describe('Praxy', () => {
 
     xit('will 404 for any requests not found in the map', () => {
       const port = 3003
-      const server = Praxy({}, {PORT: port})
+      const server = new Praxy()
       server
         .start(port)
         .then(() => axios.get(`http://localhost:${port}/not-here.json`))
@@ -117,7 +117,7 @@ describe('Praxy', () => {
 
     xit('will passthrough 404s by the downstream service', (done) => {
       const port = 3003
-      const server = Praxy({}, {PORT: port})
+      const server = new Praxy()
       server
         .start(port)
         .then(() => {

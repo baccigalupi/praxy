@@ -17,7 +17,7 @@ describe('Praxy.StaticServer', () => {
     mapper = mapper || fileMapper({
       root: path.resolve(`${__dirname}/support/static`)
     })
-    server = StaticServer(mapper)
+    server = new StaticServer(mapper)
     return server.start(port)
   }
 
