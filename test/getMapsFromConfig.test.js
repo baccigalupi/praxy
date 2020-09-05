@@ -28,7 +28,12 @@ describe('Praxy getMapsFromConfig', () => {
 
     it('will proxy any request in the map to that server', (done) => {
       const config = {
-        '*': [`http://localhost:${assetPort}`]
+        routes: [
+          { 
+            matcher: '*',
+            service: `http://localhost:${assetPort}`
+          }
+        ]
       }
       
       getMapsFromConfig(config)
