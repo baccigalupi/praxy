@@ -1,15 +1,8 @@
-const PromisedServer = require('./lib/PromisedServer')
 const StaticServer = require('./lib/StaticServer')
 const fileMapper = require('./lib/fileMapper')
+const Proxy = require('./lib/Proxy')
 
-const routes = () => (req, res) => {
-  res.statusCode = 404
-  res.end()
-}
+Proxy.StaticServer = StaticServer
+Proxy.fileMapper = fileMapper
 
-const Praxy = (config, env) => new PromisedServer(() => routes)
-
-Praxy.StaticServer = StaticServer
-Praxy.fileMapper = fileMapper
-
-module.exports = Praxy
+module.exports = Proxy

@@ -1,31 +1,101 @@
 const Praxy = require('../index')
 
+const assert = require('assert')
+const fs = require('fs')
+const path = require('path')
+const { promisify } = require('util')
+const axios = require('axios')
+
+const removeFile = promisify(fs.unlink)
+const createFile = promisify(fs.writeFile)
+
 describe('Praxy', () => {
-  it('stops and starts via promises', (done) => {
+  xit('stops and starts via promises', (done) => {
     const port = 3003
     const server = Praxy({}, {PORT: port})
     server
       .start(port)
-      .then(() => axios.get(`http://localhost:${port}/not-here`))
-      .catch(() => {
-        server.stop()
-        done()
-      })
+      .then(() => server.stop())
+      .then(() => done())
+      .catch((err) => done(err))
   })
 
   describe('servers supporting `/__praxy.json` protocol', () => {
+    const removedFilename = 'hello.json'
     let assetServer
     const assetPort = 5005
 
     beforeEach((done) => {
-      mapper = mapper || Praxy.fileMapper({
-        root: path.resolve(`${__dirname}/support/static`)
+      const mapper = Praxy.fileMapper({
+        root: path.resolve(`${__dirname}/support/static`),
+        type: 'load-time'
       })
 
+      // start and preload the asset server with map
       assetServer = Praxy.StaticServer(mapper)
       assetServer
         .start(assetPort)
-        .then(() => done)
+        .then(() => axios.get(`http://localhost:${assetPort}/refresh.svg`))
+        .then(() => done())
+        .catch((err) => done(err))
+    })
+
+    afterEach((done) => {
+      assetServer.stop().then(() => done())
+    })
+
+    afterEach((done) => {
+      createFile(
+        `${__dirname}/support/static/${removedFilename}`, 
+        JSON.stringify({hello: "World"})
+      ).then(() => done())
+    })
+
+    xit('will proxy any request in the map to that server', (done) => {
+      console.log('starting the test')
+      const port = 3003
+      const config = {
+        '*': [
+          `http://localhost:${assetServer}`
+        ]
+      }
+
+      const server = Praxy(config)
+      server
+        .start(port)
+        .then(() => axios.get(`http://localhost:${port}/refresh.svg`))
+        .then((response) => assert.equal(response.status, 200))
+        .then(() => {
+          server.stop()
+          done()
+        })
+        .catch((err) => {
+          server.stop()
+          done(err)
+        })
+    })
+
+    xit('will 404 for any requests not found in the map', () => {
+      const port = 3003
+      const server = Praxy({}, {PORT: port})
+      server
+        .start(port)
+        .then(() => axios.get(`http://localhost:${port}/not-here.json`))
+        .catch((error) => assert.equal(error.response.status, 404))
+        .then(() => done())
+    })
+
+    xit('will passthrough 404s by the downstream service', (done) => {
+      const port = 3003
+      const server = Praxy({}, {PORT: port})
+      server
+        .start(port)
+        .then(() => {
+          return removeFile(`${__dirname}/support/static/${removedFilename}`)
+        })
+        .then(() => axios.get(`http://localhost:${port}/${removedFilename}.svg`))
+        .catch((error) => assert(error.response.status, 404))
+        .then(() => done())
     })
   })
 })
