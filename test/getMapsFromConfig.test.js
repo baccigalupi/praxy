@@ -30,7 +30,7 @@ describe('Praxy getMapsFromConfig', () => {
       const config = {
         routes: [
           { 
-            matcher: '*',
+            regex: '.*',
             service: `http://localhost:${assetPort}`
           }
         ]
@@ -54,11 +54,11 @@ describe('Praxy getMapsFromConfig', () => {
       const config = {
         routes: [
           {
-            matcher: '/assets/*',
+            regex: '/assets/.*',
             service: 'https://www.google.com'
           },
           { 
-            matcher: '*',
+            regex: '.*',
             service: `http://localhost:${assetPort}`
           }
         ]

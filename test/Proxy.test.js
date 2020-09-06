@@ -10,9 +10,9 @@ const removeFile = promisify(fs.unlink)
 const createFile = promisify(fs.writeFile)
 
 describe('Praxy', () => {
-  xit('stops and starts via promises', (done) => {
+  it('stops and starts via promises', (done) => {
     const port = 3003
-    const server = new Praxy()
+    const server = new Praxy({})
     server
       .start(port)
       .then(() => server.stop())
@@ -56,7 +56,7 @@ describe('Praxy', () => {
       const config = {
         routes: [
           { 
-            matcher: '*',
+            regex: '.*',
             service: `http://localhost:${assetPort}`
           }
         ]
@@ -66,8 +66,8 @@ describe('Praxy', () => {
       server
         .start(port)
         .then(() => {
-          assert.equal(server.maps.length, 1)
-          assert.equal(server.maps[0].url, `http://localhost:${assetPort}`)
+          assert.equal(server.config.maps.length, 1)
+          assert.equal(server.config.maps[0].url, `http://localhost:${assetPort}`)
         })
         .then(() => {
           server.stop()
@@ -79,12 +79,12 @@ describe('Praxy', () => {
         })
     })
 
-    xit('will proxy any request in the map to that server', (done) => {
+    it('will proxy any request in the map to that server', (done) => {
       const port = 3003
       const config = {
         routes: [
           { 
-            matcher: '*',
+            regex: '.*',
             service: `http://localhost:${assetPort}`
           }
         ]
