@@ -75,5 +75,7 @@ describe('Praxy getMapsFromConfig', () => {
         })
         .catch((err) => done(err))
     })
+
+    it('will raise an error if the service is not real')
   })
 })
