@@ -15,5 +15,8 @@
     "mime-types": "^2.1.27",
     "recursive-readdir": "^2.2.2",
     "winston": "^3.3.3"
+  },
+  "scripts": {
+    "test": "APP_ENV=test mocha"
   }
 }

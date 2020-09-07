@@ -1,0 +1,2 @@
+info: Proxying /refresh.svg => http://localhost:5005/refresh.svg {"label":"Proxy","timestamp":"2020-09-07T03:22:24.586Z"}
+info: Proxy http://localhost:5005/refresh.svg - status: 200, content-type: image/svg+xml {"label":"Proxy","timestamp":"2020-09-07T03:22:24.593Z"}
