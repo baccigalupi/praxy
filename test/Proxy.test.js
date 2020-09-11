@@ -6,6 +6,8 @@ const path = require('path')
 const { promisify } = require('util')
 const axios = require('axios')
 
+const FakeServer = require('./support/FakeServer')
+
 const removeFile = promisify(fs.unlink)
 const createFile = promisify(fs.writeFile)
 
@@ -19,6 +21,51 @@ describe('Praxy', () => {
       .then(() => done())
       .catch((err) => done(err))
   })
+
+  it('will proxy POST requests', (done) => {
+    const proxyPort = 5005
+    const fakeServer = new FakeServer()
+    const port = 3003
+    const config = {
+      routes: [
+        { 
+          regex: '.*',
+          service: `http://localhost:${proxyPort}`
+        }
+      ]
+    }
+
+    const requestBody = {
+      status: 201,
+      hello: 'post world'
+    }
+
+    const server = new Praxy(config)
+    fakeServer
+      .start(proxyPort)
+      .then(() => server.start(port))
+      .then(() => axios.post(`http://localhost:${port}/posts`, requestBody))
+      .then((response) => {
+        assert.equal(response.status, 201)
+        assert.deepEqual(response.data, requestBody)
+      })
+      .then(() => fakeServer.stop())
+      .then(() => server.stop())
+      .then(() => done())
+      .catch((err) => {
+        fakeServer.stop()
+          .then(() => server.stop())
+          .then(() => done(err))
+      })
+  })
+
+  it('will proxy through PUT')
+  it('will proxy through PATCH')
+  it('will proxy through HEAD')
+  it('will proxy through DELETE')
+
+  it('will 404 on CONNECT, for now')
+  it('will 404 on OPTION, for now')
 
   describe('servers supporting `/__praxy.json` protocol', () => {
     const removedFilename = 'hello.json'
@@ -79,7 +126,7 @@ describe('Praxy', () => {
         })
     })
 
-    it('will proxy any request in the map to that server', (done) => {
+    it('will proxy GET requests in the map to that server', (done) => {
       const port = 3003
       const config = {
         routes: [
@@ -105,17 +152,24 @@ describe('Praxy', () => {
         })
     })
 
-    xit('will 404 for any requests not found in the map', () => {
+    it('will 404 for any requests not found in the map', (done) => {
       const port = 3003
       const server = new Praxy()
       server
         .start(port)
         .then(() => axios.get(`http://localhost:${port}/not-here.json`))
         .catch((error) => assert.equal(error.response.status, 404))
-        .then(() => done())
+        .then(() => {
+          server.stop()
+          done()
+        })
+        .catch((err) => {
+          server.stop()
+          done(err)
+        })
     })
 
-    xit('will passthrough 404s by the downstream service', (done) => {
+    it('will passthrough 404s by the downstream service', (done) => {
       const port = 3003
       const server = new Praxy()
       server
@@ -125,7 +179,10 @@ describe('Praxy', () => {
         })
         .then(() => axios.get(`http://localhost:${port}/${removedFilename}.svg`))
         .catch((error) => assert(error.response.status, 404))
-        .then(() => done())
+        .then(() => {
+          server.stop()
+          done()
+        })
     })
   })
 })
