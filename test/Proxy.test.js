@@ -6,7 +6,7 @@ const path = require('path')
 const { promisify } = require('util')
 const axios = require('axios')
 
-const { EchoServer, PraxyingEchoServer } = require('./support/fakeServers')
+const { EchoServer } = require('./support/fakeServers')
 
 const removeFile = promisify(fs.unlink)
 const createFile = promisify(fs.writeFile)
