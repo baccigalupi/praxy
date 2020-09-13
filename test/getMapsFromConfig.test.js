@@ -3,6 +3,7 @@ const Praxy = require('../index')
 
 const assert = require('assert')
 const path = require('path')
+const { EchoServer } = require('./support/fakeServers')
 
 describe('Praxy getMapsFromConfig', () => {
   describe('servers supporting `/__praxy.json` protocol', () => {
@@ -23,7 +24,9 @@ describe('Praxy getMapsFromConfig', () => {
     })
 
     afterEach((done) => {
-      assetServer.stop().then(() => done())
+      assetServer
+        .stop()
+        .then(() => done())
     })
 
     it('will proxy any request in the map to that server', (done) => {
@@ -51,11 +54,13 @@ describe('Praxy getMapsFromConfig', () => {
     })
 
     it('will return just the url for a service if the service does not provide a map', (done) => {
+      const altPort = 5555
+      const server = new EchoServer()
       const config = {
         routes: [
           {
             regex: '/assets/.*',
-            service: 'https://www.google.com'
+            service: `http://localhost:${altPort}`
           },
           { 
             regex: '.*',
@@ -64,16 +69,23 @@ describe('Praxy getMapsFromConfig', () => {
         ]
       }
 
-      getMapsFromConfig(config)
+
+      server
+        .start(altPort)
+        .then(() => getMapsFromConfig(config))
         .then((services) => {
           assert.equal(services.length, 2)
           const map = services.find((service) => {
-            return service.url === 'https://www.google.com'
+            return service.url === 'http://localhost:5555'
           })
           assert.deepEqual(Object.keys(map), ['url'])
-          done()
         })
-        .catch((err) => done(err))
+        .then(() => server.stop())
+        .then(() => done())
+        .catch((err) => {
+          server.stop()
+          done(err)
+        })
     })
 
     it('will raise an error if the service is not real')

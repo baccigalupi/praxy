@@ -19,10 +19,10 @@ const praxyingRoutes = () => (req, res) => {
     return successResponse(res, 'application/json', contents)
   }
 
-  routes()(req, res)
+  echoRoutes()(req, res)
 }
 
-const routes = () => (req, res) => {
+const echoRoutes = () => (req, res) => {
   return aggregateBody(req)
     .then((stringBody) => {
       const body = JSON.parse(stringBody || "{}")
@@ -36,14 +36,15 @@ const routes = () => (req, res) => {
 }
 
 class FakeServer {
-  constructor(options) {
-    options = options || { praxying: false }
-    const praxying = { options }
-    const routeGenerator = praxying ? praxyingRoutes : routes
-    this.server = createServer(routeGenerator)
+  constructor() {
+    this.createServer()
   }
 
-  start(port = 3000) {
+  createServer() {
+    throw new Error('createServer not implemented')
+  }
+
+  start(port = 5005) {
     return startServer(this.server, port)
   }
 
@@ -52,4 +53,19 @@ class FakeServer {
   }
 }
 
-module.exports = FakeServer
+class EchoServer extends FakeServer {
+  createServer() {
+    this.server = createServer(echoRoutes)
+  }
+}
+
+class PraxyingEchoServer extends FakeServer {
+  createServer() {
+    this.server = createServer(praxyingRoutes)
+  }
+}
+
+module.exports = {
+  EchoServer,
+  PraxyingEchoServer
+}

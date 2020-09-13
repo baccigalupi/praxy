@@ -6,7 +6,7 @@ const path = require('path')
 const { promisify } = require('util')
 const axios = require('axios')
 
-const FakeServer = require('./support/FakeServer')
+const { EchoServer, PraxyingEchoServer } = require('./support/fakeServers')
 
 const removeFile = promisify(fs.unlink)
 const createFile = promisify(fs.writeFile)
@@ -22,9 +22,40 @@ describe('Praxy', () => {
       .catch((err) => done(err))
   })
 
+  it('will proxy GET requests', (done) => {
+    const proxyPort = 5005
+    const fakeServer = new EchoServer()
+    const port = 3003
+    const config = {
+      routes: [
+        { 
+          regex: '.*',
+          service: `http://localhost:${proxyPort}`
+        }
+      ]
+    }
+
+    const server = new Praxy(config)
+    fakeServer
+      .start(proxyPort)
+      .then(() => server.start(port))
+      .then(() => axios.get(`http://localhost:${port}/world`))
+      .then((response) => {
+        assert.equal(response.status, 200)
+      })
+      .then(() => fakeServer.stop())
+      .then(() => server.stop())
+      .then(() => done())
+      .catch((err) => {
+        fakeServer.stop()
+          .then(() => server.stop())
+          .then(() => done(err))
+      })
+  })
+
   it('will proxy POST requests', (done) => {
     const proxyPort = 5005
-    const fakeServer = new FakeServer()
+    const fakeServer = new EchoServer()
     const port = 3003
     const config = {
       routes: [
@@ -59,13 +90,172 @@ describe('Praxy', () => {
       })
   })
 
-  it('will proxy through PUT')
-  it('will proxy through PATCH')
-  it('will proxy through HEAD')
-  it('will proxy through DELETE')
+  it('will proxy PUT requests', (done) => {
+    const proxyPort = 5005
+    const fakeServer = new EchoServer()
+    const port = 3003
+    const config = {
+      routes: [
+        { 
+          regex: '.*',
+          service: `http://localhost:${proxyPort}`
+        }
+      ]
+    }
 
-  it('will 404 on CONNECT, for now')
-  it('will 404 on OPTION, for now')
+    const requestBody = {
+      status: 200,
+      hello: 'PUT world'
+    }
+
+    const server = new Praxy(config)
+    fakeServer
+      .start(proxyPort)
+      .then(() => server.start(port))
+      .then(() => axios.put(`http://localhost:${port}/puts`, requestBody))
+      .then((response) => {
+        assert.equal(response.status, 200)
+        assert.deepEqual(response.data, requestBody)
+      })
+      .then(() => fakeServer.stop())
+      .then(() => server.stop())
+      .then(() => done())
+      .catch((err) => {
+        fakeServer.stop()
+          .then(() => server.stop())
+          .then(() => done(err))
+      })
+  })
+
+  it('will proxy PATCH requests', (done) => {
+    const proxyPort = 5005
+    const fakeServer = new EchoServer()
+    const port = 3003
+    const config = {
+      routes: [
+        { 
+          regex: '.*',
+          service: `http://localhost:${proxyPort}`
+        }
+      ]
+    }
+
+    const requestBody = {
+      status: 200,
+      hello: 'PATCH world'
+    }
+
+    const server = new Praxy(config)
+    fakeServer
+      .start(proxyPort)
+      .then(() => server.start(port))
+      .then(() => axios.patch(`http://localhost:${port}/patches`, requestBody))
+      .then((response) => {
+        assert.equal(response.status, 200)
+        assert.deepEqual(response.data, requestBody)
+      })
+      .then(() => fakeServer.stop())
+      .then(() => server.stop())
+      .then(() => done())
+      .catch((err) => {
+        fakeServer.stop()
+          .then(() => server.stop())
+          .then(() => done(err))
+      })
+  })
+
+  it('will proxy through DELETE', (done) => {
+    const proxyPort = 5005
+    const fakeServer = new EchoServer()
+    const port = 3003
+    const config = {
+      routes: [
+        { 
+          regex: '.*',
+          service: `http://localhost:${proxyPort}`
+        }
+      ]
+    }
+
+    const server = new Praxy(config)
+    fakeServer
+      .start(proxyPort)
+      .then(() => server.start(port))
+      .then(() => axios.delete(`http://localhost:${port}/deletes/123`))
+      .then((response) => {
+        assert.equal(response.status, 200)
+      })
+      .then(() => fakeServer.stop())
+      .then(() => server.stop())
+      .then(() => done())
+      .catch((err) => {
+        fakeServer.stop()
+          .then(() => server.stop())
+          .then(() => done(err))
+      })
+  })
+
+  it('will proxy through HEAD', (done) => {
+    const proxyPort = 5005
+    const fakeServer = new EchoServer()
+    const port = 3003
+    const config = {
+      routes: [
+        { 
+          regex: '.*',
+          service: `http://localhost:${proxyPort}`
+        }
+      ]
+    }
+
+    const server = new Praxy(config)
+    fakeServer
+      .start(proxyPort)
+      .then(() => server.start(port))
+      .then(() => axios.head(`http://localhost:${port}/headliner`))
+      .then((response) => {
+        assert.equal(response.status, 200)
+      })
+      .then(() => fakeServer.stop())
+      .then(() => server.stop())
+      .then(() => done())
+      .catch((err) => {
+        fakeServer.stop()
+          .then(() => server.stop())
+          .then(() => done(err))
+      })
+  })
+
+  it('will proxy OPTION for now', (done) => {
+    const proxyPort = 5005
+    const fakeServer = new EchoServer()
+    const port = 3003
+    const config = {
+      routes: [
+        { 
+          regex: '.*',
+          service: `http://localhost:${proxyPort}`
+        }
+      ]
+    }
+
+    const server = new Praxy(config)
+    fakeServer
+      .start(proxyPort)
+      .then(() => server.start(port))
+      .then(() => axios.options(`http://localhost:${port}/resource/123`))
+      .then((response) => {
+        assert.equal(response.status, 200)
+      })
+      .then(() => fakeServer.stop())
+      .then(() => server.stop())
+      .then(() => done())
+      .catch((err) => {
+        fakeServer.stop()
+          .then(() => server.stop())
+          .then(() => done(err))
+      })
+  })
 
   describe('servers supporting `/__praxy.json` protocol', () => {
     const removedFilename = 'hello.json'
